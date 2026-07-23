@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Solo Scheduler">
+    <title>Solo Scheduler</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./assets/icon.svg">
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="todayLabel">Today</p>
+          <h1>Solo Scheduler</h1>
+        </div>
+        <button class="icon-button" id="themeToggle" type="button" aria-label="Toggle theme">
+          <span aria-hidden="true">◐</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="view is-active" id="view-dashboard" data-view="dashboard">
+          <div class="dashboard-hero">
+            <div>
+              <p class="eyebrow">Plan your day</p>
+              <h2 id="heroTitle">Clear schedule, clear head.</h2>
+            </div>
+            <div class="ring" aria-label="Completion progress">
+              <svg viewBox="0 0 64 64" role="img">
+                <circle cx="32" cy="32" r="27"></circle>
+                <circle id="completionRing" cx="32" cy="32" r="27"></circle>
+              </svg>
+              <strong id="completionPercent">0%</strong>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-tile">
+              <strong id="statToday">0</strong>
+              <span>Today</span>
+            </article>
+            <article class="stat-tile">
+              <strong id="statBusy">0h</strong>
+              <span>Busy</span>
+            </article>
+            <article class="stat-tile">
+              <strong id="statMissed">0</strong>
+              <span>Missed</span>
+            </article>
+          </div>
+
+          <div class="quick-actions" aria-label="Quick appointment dates">
+            <button class="chip-button" type="button" data-quick="today">Today</button>
+            <button class="chip-button" type="button" data-quick="tomorrow">Tomorrow</button>
+            <button class="chip-button" type="button" data-quick="nextWeek">Next Week</button>
+            <button class="chip-button" type="button" data-quick="nextMonth">Next Month</button>
+          </div>
+
+          <section class="panel">
+            <div class="section-title">
+              <h3>Today</h3>
+              <span id="todayCount">0 items</span>
+            </div>
+            <div class="timeline" id="todayList"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-title">
+              <h3>Available Time</h3>
+              <span>8 AM - 8 PM</span>
+            </div>
+            <div class="slot-strip" id="freeSlots"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-title">
+              <h3>Upcoming</h3>
+              <span id="upcomingCount">0 items</span>
+            </div>
+            <div class="timeline" id="upcomingList"></div>
+          </section>
+        </section>
+
+        <section class="view" id="view-calendar" data-view="calendar">
+          <div class="toolbar-row">
+            <input id="calendarDate" type="date" aria-label="Calendar date">
+            <div class="segmented" role="tablist" aria-label="Calendar view">
+              <button type="button" class="is-selected" data-mode="day">Day</button>
+              <button type="button" data-mode="week">Week</button>
+              <button type="button" data-mode="month">Month</button>
+              <button type="button" data-mode="agenda">Agenda</button>
+            </div>
+          </div>
+          <div id="calendarCanvas" class="calendar-canvas"></div>
+        </section>
+
+        <section class="view" id="view-search" data-view="search">
+          <div class="search-box">
+            <input id="searchInput" type="search" placeholder="Search title, tag, note, location" aria-label="Search appointments">
+          </div>
+          <div class="filter-row" id="categoryFilters"></div>
+          <div class="timeline" id="searchResults"></div>
+        </section>
+
+        <section class="view" id="view-insights" data-view="insights">
+          <section class="panel">
+            <div class="section-title">
+              <h3>Productivity</h3>
+              <span id="insightSignal">Balanced</span>
+            </div>
+            <div class="stats-grid">
+              <article class="stat-tile">
+                <strong id="insightTotal">0</strong>
+                <span>Total</span>
+              </article>
+              <article class="stat-tile">
+                <strong id="insightDone">0</strong>
+                <span>Done</span>
+              </article>
+              <article class="stat-tile">
+                <strong id="insightHigh">0</strong>
+                <span>High</span>
+              </article>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="section-title">
+              <h3>Busy by Category</h3>
+              <span>All time</span>
+            </div>
+            <div id="categoryBars" class="category-bars"></div>
+          </section>
+          <section class="panel">
+            <div class="section-title">
+              <h3>Reminder Status</h3>
+              <span id="notificationState">Not enabled</span>
+            </div>
+            <p class="muted">PWA notifications work best after adding the app to your iPhone Home Screen. Server push is needed for guaranteed reminders when the app is fully closed.</p>
+          </section>
+        </section>
+
+        <section class="view" id="view-settings" data-view="settings">
+          <section class="panel settings-panel">
+            <label>
+              Display name
+              <input id="displayName" type="text" placeholder="My Schedule">
+            </label>
+            <label>
+              Email for future reminders
+              <input id="userEmail" type="email" placeholder="you@example.com">
+            </label>
+            <label class="switch-row">
+              <span>Local app lock</span>
+              <input id="appLock" type="checkbox">
+            </label>
+            <label>
+              App PIN
+              <input id="pinInput" type="password" inputmode="numeric" minlength="4" maxlength="12" placeholder="Set or change PIN">
+            </label>
+            <label class="switch-row">
+              <span>Email reminder preference</span>
+              <input id="emailReminders" type="checkbox">
+            </label>
+            <button class="primary-button" id="enableNotifications" type="button">Enable Notifications</button>
+            <button class="secondary-button" id="installHelp" type="button">How to Install on iPhone</button>
+          </section>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Primary navigation">
+        <button type="button" class="is-active" data-nav="dashboard">
+          <span>⌂</span>
+          Home
+        </button>
+        <button type="button" data-nav="calendar">
+          <span>□</span>
+          Calendar
+        </button>
+        <button type="button" data-nav="search">
+          <span>⌕</span>
+          Search
+        </button>
+        <button type="button" data-nav="insights">
+          <span>▥</span>
+          Insights
+        </button>
+        <button type="button" data-nav="settings">
+          <span>⚙</span>
+          Settings
+        </button>
+      </nav>
+
+      <button class="fab" id="addButton" type="button" aria-label="Add appointment">+</button>
+    </div>
+
+    <dialog id="appointmentDialog" class="editor-dialog">
+      <form id="appointmentForm" method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Appointment</p>
+            <h2 id="dialogTitle">New Appointment</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="button" id="closeDialog" aria-label="Close">×</button>
+        </div>
+
+        <input id="appointmentId" type="hidden">
+
+        <label>
+          Title
+          <input id="title" type="text" required placeholder="Doctor visit, meeting, task">
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Starts
+            <input id="startDateTime" type="datetime-local" required>
+          </label>
+          <label>
+            Ends
+            <input id="endDateTime" type="datetime-local" required>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Category
+            <select id="category"></select>
+          </label>
+          <label>
+            Repeat
+            <select id="recurrence">
+              <option>None</option>
+              <option>Daily</option>
+              <option>Weekly</option>
+              <option>Monthly</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Priority
+            <select id="priority">
+              <option>Low</option>
+              <option selected>Normal</option>
+              <option>High</option>
+            </select>
+          </label>
+          <label>
+            Location
+            <input id="location" type="text" placeholder="Office, clinic, address">
+          </label>
+        </div>
+
+        <label>
+          Tags
+          <input id="tags" type="text" placeholder="work, health, follow-up">
+        </label>
+
+        <label>
+          Notes
+          <textarea id="notes" rows="3" placeholder="Useful details"></textarea>
+        </label>
+
+        <label>
+          Attachments
+          <input id="attachments" type="text" placeholder="File names or links">
+        </label>
+
+        <label class="switch-row">
+          <span>Optional email reminder</span>
+          <input id="emailReminder" type="checkbox">
+        </label>
+
+        <div class="conflict-box" id="conflictBox" hidden></div>
+        <div class="slot-strip compact" id="editorSlots"></div>
+
+        <div class="dialog-actions">
+          <button class="danger-button" id="deleteAppointment" type="button" hidden>Delete</button>
+          <button class="secondary-button" id="markDone" type="button" hidden>Mark Done</button>
+          <button class="primary-button" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="infoDialog" class="info-dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">iPhone setup</p>
+          <h2>Add to Home Screen</h2>
+        </div>
+        <button class="icon-button" id="closeInfo" type="button" aria-label="Close">×</button>
+      </div>
+      <ol>
+        <li>Open this app link in Safari on your iPhone.</li>
+        <li>Tap the Share button.</li>
+        <li>Choose Add to Home Screen.</li>
+        <li>Open Solo Scheduler from the new icon.</li>
+      </ol>
+      <p class="muted">For reliable future reminders while the app is closed, connect a push notification backend later. This PWA stores your appointments locally on the device.</p>
+    </dialog>
+
+    <dialog id="lockDialog" class="info-dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Private schedule</p>
+          <h2>Unlock</h2>
+        </div>
+      </div>
+      <label>
+        PIN
+        <input id="unlockPin" type="password" inputmode="numeric" minlength="4" maxlength="12" placeholder="Enter PIN">
+      </label>
+      <p class="muted" id="unlockError"></p>
+      <button class="primary-button" id="unlockButton" type="button">Unlock</button>
+    </dialog>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
